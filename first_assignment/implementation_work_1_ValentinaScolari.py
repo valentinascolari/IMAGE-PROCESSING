@@ -27,7 +27,6 @@ def convert_grayscale(image):
     return image.convert("L")
 
 ### c)
-
 def quantization(image_tons_de_cinza, n):
     if n >= 256:
         return image_grayscale  
@@ -49,9 +48,7 @@ if __name__ == "__main__":
     destination_directory = "C:/Users/example/Desktop/name" ## put the file destination path here (where you want to save it)
     newName = "re_recorded_image.jpeg" ## enter the name you want to save the file with and the format you want (.jpg, .jpeg, .png...)
 ### change "\" to "/" and vice versa on lines 48 and 49 if it breaks when running.
-
     rename_image(source_file, destination_directory, newName)
-
     image_original = Image.open(source_file)
     renamed_image = Image.open(os.path.join(destination_directory, newName))
 
@@ -67,12 +64,10 @@ if __name__ == "__main__":
     
     image_horizontal = horizontal_mirroring(image_original)
     image_horizontal.show()
-    
     image_vertical = vertical_mirroring(image_original)
     image_vertical.show()
 
     image_original = Image.open(source_file)
-   
     image_grayscale = convert_grayscale(image_original)
     image_grayscale .show()
 
