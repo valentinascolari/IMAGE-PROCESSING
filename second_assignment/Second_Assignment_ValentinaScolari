@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ######## Stage I
-def rename_image(source_file, destination_directory, newName):
+def rename_image(source_file, destination_directory, new_name):
     if os.path.isfile(source_file):
         image = Image.open(source_file)
         file_name = os.path.basename(source_file)
-        destination_path = os.path.join(destination_directory, newName)
+        destination_path = os.path.join(destination_directory, new_name)
         image.save(destination_path)
-        print(f"File {file_name} renamed to {newName} and saved in {destination_path}")
+        print(f"File {file_name} renamed to {new_name} and saved in {destination_path}")
     else:
         print("Source file not found.")
         return None
@@ -31,7 +31,7 @@ def convert_grayscale(image):
 
 def quantization(image_grayscale, n):
     if n >= 256:
-        return image_grayscale  
+        return image_grayscale
 
     tb = 256 / n
     quantized_image = Image.new("L", image_grayscale.size)
@@ -294,16 +294,16 @@ def convolution_sem_scipy(image, kernel):
 if __name__ == "__main__":
     source_file = "C:/Users/your user/Desktop/name/example.jpg"
     destination_directory = "C:/Users/your user/Desktop/name"
-    newName = "newName_example.jpeg"
-    rename_image(source_file, destination_directory, newName)
+    new_name = "new_name_example.jpeg"
+    rename_image(source_file, destination_directory, new_name)
     original_image = Image.open(source_file)
-    renamed_image = Image.open(os.path.join(destination_directory, newName))
-    plt.figure(figsize=(10, 5))  
-    plt.subplot(1, 2, 1)  
+    renamed_image = Image.open(os.path.join(destination_directory, new_name))
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
     plt.imshow(original_image)
     plt.title("Original Image")
 
-    plt.subplot(1, 2, 2)  
+    plt.subplot(1, 2, 2)
     plt.imshow(renamed_image)
     plt.title("Re-recorded image")
 
@@ -320,21 +320,21 @@ if __name__ == "__main__":
     image_grayscale = convert_grayscale(original_image)
     image_grayscale.show()
 
-    number_shades = 6  
+    number_shades = 6
     quantized_image = quantization(image_grayscale, number_shades)
     quantized_image.show()
 
 #### d)
     file_name_resulting = "image_resulting.jpeg"
-    caminho_resultante = os.path.join(destination_directory, file_name_resulting)
-    quantized_image.save(caminho_resultante)
-    print(f"Quantized image saved in {caminho_resultante}")
+    resulting_path = os.path.join(destination_directory, file_name_resulting)
+    quantized_image.save(resulting_path)
+    print(f"Quantized image saved in {resulting_path}")
 
 #################################################################################################
 ###### T2
 ### parte 1
 
-## 1) 
+## 1)
     histogram = calculate_histogram(image_grayscale)
     display_histogram(histogram)
 
@@ -357,7 +357,7 @@ if __name__ == "__main__":
 
 ## 3)
 # Ajuste do contrast da imagem original
-    contrast_factor = 3.5  
+    contrast_factor = 3.5
     image_adjusted_contrast = adjust_contrast(original_image, contrast_factor)
     
     plt.figure(figsize=(10, 5))
