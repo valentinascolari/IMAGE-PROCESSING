@@ -3,13 +3,13 @@ import os
 import matplotlib.pyplot as plt
 
 ######## Stage I
-def rename_image(source_file, destination_directory, newName):
+def rename_image(source_file, destination_directory, new_name):
     if os.path.isfile(source_file):
         image = Image.open(source_file)
         file_name = os.path.basename(source_file)
-        destinationpath = os.path.join(destination_directory, newName)
+        destinationpath = os.path.join(destination_directory, new_name)
         image.save(destinationpath)
-        print(f"File {file_name} renamed to {newName} and saved in {destinationpath}")
+        print(f"File {file_name} renamed to {new_name} and saved in {destinationpath}")
     else:
         print("Source file not found.")
         return None
@@ -46,11 +46,11 @@ def quantization(image_grayscale, n):
 if __name__ == "__main__":
     source_file = "C:/Users/example/Desktop/name/image_example.jpg"   ## put the source file path here
     destination_directory = "C:/Users/example/Desktop/name" ## put the file destination path here (where you want to save it)
-    newName = "re_recorded_image.jpeg" ## enter the name you want to save the file with and the format you want (.jpg, .jpeg, .png...)
+    new_name = "re_recorded_image.jpeg" ## enter the name you want to save the file with and the format you want (.jpg, .jpeg, .png...)
 ### change "\" to "/" and vice versa on lines 48 and 49 if it breaks when running.
-    rename_image(source_file, destination_directory, newName)
+    rename_image(source_file, destination_directory, new_name)
     image_original = Image.open(source_file)
-    renamed_image = Image.open(os.path.join(destination_directory, newName))
+    renamed_image = Image.open(os.path.join(destination_directory, new_name))
 
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
