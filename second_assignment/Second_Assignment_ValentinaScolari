@@ -1,0 +1,560 @@
+from PIL import Image
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+
+######## Stage I
+def rename_image(source_file, destination_directory, newName):
+    if os.path.isfile(source_file):
+        image = Image.open(source_file)
+        file_name = os.path.basename(source_file)
+        destination_path = os.path.join(destination_directory, newName)
+        image.save(destination_path)
+        print(f"File {file_name} renamed to {newName} and saved in {destination_path}")
+    else:
+        print("Source file not found.")
+        return None
+
+####### Stage II
+### a)
+def horizontal_mirroring(image):
+    return image.transpose(Image.FLIP_LEFT_RIGHT)
+
+def vertical_mirroring(image):
+    return image.transpose(Image.FLIP_TOP_BOTTOM)
+
+
+### b)
+def convert_grayscale(image):
+    return image.convert("L")
+
+### c)
+
+def quantization(image_grayscale, n):
+    if n >= 256:
+        return image_grayscale  
+
+    tb = 256 / n
+    quantized_image = Image.new("L", image_grayscale.size)
+
+    for x in range(image_grayscale.width):
+        for y in range(image_grayscale.height):
+            pixel_value = image_grayscale.getpixel((x, y))
+            bin_idx = int(pixel_value / tb)
+            quantized_pixel = int((bin_idx + 0.5) * tb)
+            quantized_image.putpixel((x, y), quantized_pixel)
+
+    return quantized_image
+
+
+
+#### T2
+## 1)
+def calculate_histogram(image_grayscale):
+    histogram = image_grayscale.histogram()
+    return histogram
+
+def display_histogram(histogram):
+    plt.figure()
+    plt.bar(range(256), histogram, color='gray', alpha=0.7)
+    plt.title("Grayscale Image Histogram")
+    plt.xlabel("Grayscale")
+    plt.ylabel("Frequency")
+    plt.show()
+
+## 2) 
+def adjust_brightness(image, factor):
+    if image.mode == 'RGB':
+        r, g, b = image.split()
+        r = adjust_brightness_canal(r, factor)
+        g = adjust_brightness_canal(g, factor)
+        b = adjust_brightness_canal(b, factor)
+
+        image_adjusted = Image.merge('RGB', (r, g, b))
+    else:
+        image_adjusted = adjust_brightness_canal(image, factor)
+
+    return image_adjusted
+
+def adjust_brightness_canal(canal, factor):
+    canal_array = np.array(canal)
+    canal_array = canal_array + factor
+    canal_array = np.clip(canal_array, 0, 255)
+    canal_adjusted = Image.fromarray(canal_array.astype(np.uint8))
+    return canal_adjusted
+
+## 3)
+def adjust_contrast(image, factor):
+    if image.mode == 'RGB':
+        r, g, b = image.split()
+
+        r = adjust_contrast_canal(r, factor)
+        g = adjust_contrast_canal(g, factor)
+        b = adjust_contrast_canal(b, factor)
+
+        image_adjusted = Image.merge('RGB', (r, g, b))
+    else:
+        image_adjusted = adjust_contrast_canal(image, factor)
+
+    return image_adjusted
+
+def adjust_contrast_canal(canal, factor):
+    canal_array = np.array(canal, dtype=np.float32)
+    canal_array = canal_array * factor
+    canal_array = np.clip(canal_array, 0, 255)
+    canal_adjusted = Image.fromarray(canal_array.astype(np.uint8))
+    return canal_adjusted
+
+## 4)
+def calculate_negative(image):
+    if image.mode == 'RGB':
+        r, g, b = image.split()
+
+        r = calculate_negative_canal(r)
+        g = calculate_negative_canal(g)
+        b = calculate_negative_canal(b)
+
+        negative_image = Image.merge('RGB', (r, g, b))
+    else:
+        negative_image = calculate_negative_canal(image)
+
+    return negative_image
+
+def calculate_negative_canal(canal):
+    canal_array = np.array(canal)
+    canal_negative_array = 255 - canal_array
+    canal_negative = Image.fromarray(canal_negative_array.astype(np.uint8))
+    return canal_negative
+
+## 5)
+def equalize_histogram(image):
+    if image.mode == 'RGB':
+        r, g, b = image.split()
+        r = equalize_histogram_canal(r)
+        g = equalize_histogram_canal(g)
+        b = equalize_histogram_canal(b)
+
+        image_equalized = Image.merge('RGB', (r, g, b))
+    else:
+        image_equalized = equalize_histogram_canal(image)
+
+    return image_equalized
+
+def equalize_histogram_canal(canal):
+    hist = canal.histogram()
+    hist_cumulativo = np.cumsum(hist)
+    hist_cumulativo_normalizado = hist_cumulativo * (255.0 / hist_cumulativo[-1])
+
+    canal_equalized_array = np.interp(np.array(canal), range(256), hist_cumulativo_normalizado)
+    canal_equalized = Image.fromarray(canal_equalized_array.astype(np.uint8))
+
+    return canal_equalized
+
+## 6)
+def histogram_matching(image_reference, image_alvo):
+    # Obtém os histogramas das duas imagens
+    hist_reference = calculate_histogram(image_reference)
+    hist_alvo = calculate_histogram(image_alvo)
+
+    # Calcula as funções de distribuição acumulada normalizadas
+    cdf_reference = np.cumsum(hist_reference) / float(image_reference.size[0] * image_reference.size[1])
+    cdf_alvo = np.cumsum(hist_alvo) / float(image_alvo.size[0] * image_alvo.size[1])
+
+    # Mapeia os valores dos pixels da imagem alvo para o novo valor após o histogram matching
+    mapping = np.zeros(256, dtype=np.uint8)
+    for i in range(256):
+        difference_min = np.inf
+        for j in range(256):
+            difference = np.abs(cdf_reference[i] - cdf_alvo[j])
+            if difference < difference_min:
+                difference_min = difference
+                mapping[i] = j
+
+    # Aplica o mapping aos pixels da imagem alvo
+    image_alvo_equalized = Image.new("L", image_alvo.size)
+    for x in range(image_alvo.width):
+        for y in range(image_alvo.height):
+            pixel_value = image_alvo.getpixel((x, y))
+            pixel_equalized = mapping[pixel_value]
+            image_alvo_equalized.putpixel((x, y), pixel_equalized)
+
+    return image_alvo_equalized
+
+
+
+######### parte 2
+## 7)
+def zoom_out(image, sx, sy):
+    width, height = image.size
+    new_width = int(width / sx)
+    new_height = int(height / sy)
+
+    zoomed_out = Image.new('RGB', (new_width, new_height))
+
+    for x in range(0, new_width):
+        for y in range(0, new_height):
+            # Define as coordenadas do retângulo
+            start_x = int(x * sx)
+            end_x = int((x + 1) * sx)
+            start_y = int(y * sy)
+            end_y = int((y + 1) * sy)
+
+            # Garante que o retângulo não ultrapasse as dimensões da imagem original
+            end_x = min(end_x, width)
+            end_y = min(end_y, height)
+
+            # Calcula a média (R, G, B) dos pixels sob o retângulo
+            average_pixel = calculate_medium_rectangle(image, start_x, end_x, start_y, end_y)
+
+            # Define o pixel na imagem reduzida
+            zoomed_out.putpixel((x, y), average_pixel)
+
+    return zoomed_out
+
+def calculate_medium_rectangle(image, start_x, end_x, start_y, end_y):
+    pixels = []
+    for x in range(start_x, end_x):
+        for y in range(start_y, end_y):
+            pixels.append(image.getpixel((x, y)))
+
+    # Calcula a média dos pixels no retângulo
+    average_pixel = (
+        int(np.mean([pixel[0] for pixel in pixels])),
+        int(np.mean([pixel[1] for pixel in pixels])),
+        int(np.mean([pixel[2] for pixel in pixels])),
+    )
+
+    return average_pixel
+
+## 8)
+def zoom_in(image):
+    width, height = image.size
+    new_width = width * 2
+    new_height = height * 2
+
+    zoomed_in = Image.new('RGB', (new_width, new_height))
+
+    for x in range(0, new_width, 2):
+        for y in range(0, new_height, 2):
+            original_x = min(x // 2, width - 1)
+            original_y = min(y // 2, height - 1)
+            zoomed_in.putpixel((x, y), image.getpixel((original_x, original_y)))
+
+    # Interpolação linear ao longo de todas as linhas
+    for x in range(1, new_width - 1, 2):
+        for y in range(0, new_height, 2):
+            pixel1 = zoomed_in.getpixel((x - 1, y))
+            pixel2 = zoomed_in.getpixel((x + 1, y))
+            interpolated_pixel = (
+                int((pixel1[0] + pixel2[0]) / 2),
+                int((pixel1[1] + pixel2[1]) / 2),
+                int((pixel1[2] + pixel2[2]) / 2),
+            )
+            zoomed_in.putpixel((x, y), interpolated_pixel)
+
+    # Interpolação linear ao longo de todas as colunas
+    for x in range(0, new_width, 2):
+        for y in range(1, new_height - 1, 2):
+            pixel1 = zoomed_in.getpixel((x, y - 1))
+            pixel2 = zoomed_in.getpixel((x, y + 1))
+            interpolated_pixel = (
+                int((pixel1[0] + pixel2[0]) / 2),
+                int((pixel1[1] + pixel2[1]) / 2),
+                int((pixel1[2] + pixel2[2]) / 2),
+            )
+            zoomed_in.putpixel((x, y), interpolated_pixel)
+
+    # Interpolação linear ao longo de todas as linhas e colunas
+    for x in range(1, new_width - 1, 2):
+        for y in range(1, new_height - 1, 2):
+            pixel1 = zoomed_in.getpixel((x - 1, y))
+            pixel2 = zoomed_in.getpixel((x + 1, y))
+            pixel3 = zoomed_in.getpixel((x, y - 1))
+            pixel4 = zoomed_in.getpixel((x, y + 1))
+            interpolated_pixel = (
+                int((pixel1[0] + pixel2[0] + pixel3[0] + pixel4[0]) / 4),
+                int((pixel1[1] + pixel2[1] + pixel3[1] + pixel4[1]) / 4),
+                int((pixel1[2] + pixel2[2] + pixel3[2] + pixel4[2]) / 4),
+            )
+            zoomed_in.putpixel((x, y), interpolated_pixel)
+
+    return zoomed_in
+
+## 9)
+def rotate_image(image, angulo):
+    return image.rotate(angulo)
+
+## 10)
+def convolution_sem_scipy(image, kernel):
+    image_array = np.array(image)
+    kernel_array = np.array(kernel)
+
+    result = np.zeros_like(image_array)
+
+    kernel_size = len(kernel)
+    kernel_center = kernel_size // 2
+
+    for i in range(kernel_center, image_array.shape[0] - kernel_center):
+        for j in range(kernel_center, image_array.shape[1] - kernel_center):
+            region = image_array[i - kernel_center:i + kernel_center + 1, j - kernel_center:j + kernel_center + 1]
+            result[i, j] = np.clip(np.sum(region * kernel_array), 0, 255)
+
+    return Image.fromarray(result.astype(np.uint8))
+
+
+#####################################################################################################
+if __name__ == "__main__":
+    source_file = "C:/Users/your user/Desktop/name/example.jpg"
+    destination_directory = "C:/Users/your user/Desktop/name"
+    newName = "newName_example.jpeg"
+
+    rename_image(source_file, destination_directory, newName)
+
+
+    original_image = Image.open(source_file)
+    renamed_image = Image.open(os.path.join(destination_directory, newName))
+
+   
+    plt.figure(figsize=(10, 5))  
+    plt.subplot(1, 2, 1)  
+    plt.imshow(original_image)
+    plt.title("Original Image")
+
+    plt.subplot(1, 2, 2)  
+    plt.imshow(renamed_image)
+    plt.title("Re-recorded image")
+
+    plt.show()
+
+    image_horizontal = horizontal_mirroring(original_image)
+    image_horizontal.show()
+    
+    image_vertical = vertical_mirroring(original_image)
+    image_vertical.show()
+
+    original_image = Image.open(source_file)
+    
+    image_grayscale = convert_grayscale(original_image)
+    image_grayscale.show()
+
+    number_shades = 6  
+    quantized_image = quantization(image_grayscale, number_shades)
+    quantized_image.show()
+
+#### d)
+    file_name_resulting = "image_resulting.jpeg"
+    caminho_resultante = os.path.join(destination_directory, file_name_resulting)
+    quantized_image.save(caminho_resultante)
+    print(f"Quantized image saved in {caminho_resultante}")
+
+
+#################################################################################################
+###### T2
+### parte 1
+
+## 1) 
+    histogram = calculate_histogram(image_grayscale)
+
+    display_histogram(histogram)
+
+
+
+## 2)
+    # Ajuste do brilho da imagem original
+    factor_Brightness = 50
+    Image_Adjusted_Brightness = adjust_brightness(original_image, factor_Brightness)
+
+    
+    plt.figure(figsize=(10, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(original_image)
+    plt.title("Original Image")
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(Image_Adjusted_Brightness)
+    plt.title("Image with Adjusted Brightness")
+
+    plt.show()
+
+## 3)
+# Ajuste do contrast da imagem original
+    contrast_factor = 3.5  
+    image_adjusted_contrast = adjust_contrast(original_image, contrast_factor)
+
+    
+    plt.figure(figsize=(10, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(original_image)
+    plt.title("Original Image")
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(image_adjusted_contrast)
+    plt.title("Image with contrast adjusted")
+    plt.show()
+
+## 4)
+# Calculo e exibição do negative da imagem original
+    negative_image = calculate_negative(original_image)
+    
+    plt.figure(figsize=(10, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(original_image)
+    plt.title("Imagem Original")
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(negative_image)
+    plt.title("Negative Image")
+    plt.show()
+
+## 5)
+# Equalização do histogram da imagem original
+    image_equalized = equalize_histogram(original_image)
+    plt.figure(figsize=(15, 5))
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(original_image)
+    plt.title("Original Image")
+
+    plt.subplot(1, 3, 2)
+    plt.imshow(image_equalized)
+    plt.title("Image equalized")
+
+    if original_image.mode != "L":
+        plt.subplot(1, 3, 3)
+        hist_original = calculate_histogram(image_grayscale)
+        hist_equalized = calculate_histogram(convert_grayscale(image_equalized))
+        plt.bar(range(256), hist_original, color='gray', alpha=0.7, label='Before')
+        plt.bar(range(256), hist_equalized, color='red', alpha=0.7, label='After')
+        plt.title("histogram (grayscale)")
+        plt.xlabel("Grayscale")
+        plt.ylabel("Frequency")
+        plt.legend()
+
+    plt.show()
+
+
+######### parte 2
+## 7)
+## Define os factores de redução sx e sy (sx e sy >= 1)
+sx = 2
+sy = 2
+image_zoomed_out = zoom_out(original_image, sx, sy)
+    
+plt.figure(figsize=(10, 5))
+
+plt.subplot(1, 2, 1)
+plt.imshow(original_image)
+plt.title("Original Image")
+
+plt.subplot(1, 2, 2)
+plt.imshow(image_zoomed_out)
+plt.title("Image after Zoom Out")
+plt.show()
+
+## 8)
+image_zoomed_in = zoom_in(original_image)
+
+plt.figure(figsize=(10, 5))
+
+plt.subplot(1, 2, 1)
+plt.imshow(original_image)
+plt.title("Original Image")
+
+plt.subplot(1, 2, 2)
+plt.imshow(image_zoomed_in)
+plt.title("Image after Zoom In")
+plt.show()
+
+## 9)
+    # Rotaciona a imagem original em 90 graus no sentido horário
+image_rotated_clockwise = rotate_image(original_image, -90)
+
+    # Rotaciona a imagem original em 90 graus no sentido anti-horário
+image_rotated_anticlockwise = rotate_image(original_image, 90)
+
+    # Rotaciona a imagem original em 180 graus
+image_rotated_180 = rotate_image(original_image, 180)
+
+    # Rotaciona a imagem original em 270 graus sentido horário
+image_rotated_270 = rotate_image(original_image, -270)
+
+plt.figure(figsize=(15, 5))
+
+plt.subplot(1, 5, 1)
+plt.imshow(original_image)
+plt.title("Original Image")
+
+plt.subplot(1, 5, 2)
+plt.imshow(image_rotated_clockwise)
+plt.title("Rotated -90 degrees")
+
+plt.subplot(1, 5, 3)
+plt.imshow(image_rotated_anticlockwise)
+plt.title("Rotated 90 degrees")
+
+plt.subplot(1, 5, 4)
+plt.imshow(image_rotated_180)
+plt.title("Rotated 180 degrees")
+
+plt.subplot(1, 5, 5)
+plt.imshow(image_rotated_270)
+plt.title("Rotated -270 degrees")
+plt.show()
+
+## 10)
+ # Kernels
+kernel_gaussiano = [[0.0625, 0.125, 0.0625], [0.125, 0.25, 0.125], [0.0625, 0.125, 0.0625]]
+kernel_laplaciano = [[0, -1, 0], [-1, 4, -1], [0, -1, 0]]
+kernel_passa_altas = [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]]
+kernel_prewitt_hx = [[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]]
+kernel_prewitt_hy = [[-1, -1, -1], [0, 0, 0], [1, 1, 1]]
+kernel_sobel_hx = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]
+kernel_sobel_hy = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]
+
+    # Aplica a convolução com cada filtro
+result_gaussiano = convolution_sem_scipy(image_grayscale, kernel_gaussiano)
+result_laplaciano = convolution_sem_scipy(image_grayscale, kernel_laplaciano)
+result_passa_altas = convolution_sem_scipy(image_grayscale, kernel_passa_altas)
+result_prewitt_hx = convolution_sem_scipy(image_grayscale, kernel_prewitt_hx)
+result_prewitt_hy = convolution_sem_scipy(image_grayscale, kernel_prewitt_hy)
+result_sobel_hx = convolution_sem_scipy(image_grayscale, kernel_sobel_hx)
+result_sobel_hy = convolution_sem_scipy(image_grayscale, kernel_sobel_hy)
+
+    # Exibe as imagens resultantes
+plt.figure(figsize=(15, 10))
+
+plt.subplot(2, 4, 1)
+plt.imshow(image_grayscale, cmap='gray')
+plt.title("Original")
+
+plt.subplot(2, 4, 2)
+plt.imshow(result_gaussiano, cmap='gray')
+plt.title("Gaussiano")
+
+plt.subplot(2, 4, 3)
+plt.imshow(result_laplaciano, cmap='gray')
+plt.title("Laplaciano")
+
+plt.subplot(2, 4, 4)
+plt.imshow(result_passa_altas, cmap='gray')
+plt.title("Passa Altas")
+
+plt.subplot(2, 4, 5)
+plt.imshow(result_prewitt_hx, cmap='gray')
+plt.title("Prewitt Hx")
+
+plt.subplot(2, 4, 6)
+plt.imshow(result_prewitt_hy, cmap='gray')
+plt.title("Prewitt Hy")
+
+plt.subplot(2, 4, 7)
+plt.imshow(result_sobel_hx, cmap='gray')
+plt.title("Sobel Hx")
+
+plt.subplot(2, 4, 8)
+plt.imshow(result_sobel_hy, cmap='gray')
+plt.title("Sobel Hy")
+plt.show()
