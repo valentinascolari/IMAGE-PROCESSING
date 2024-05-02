@@ -41,7 +41,7 @@ def quantization(image_grayscale, n):
             pixel_quantizado = int((bin_idx + 0.5) * tb)
             quantized_image .putpixel((x, y), pixel_quantizado)
     return quantized_image
-    
+
 #####################################################################################################
 if __name__ == "__main__":
     source_file = "C:/Users/example/Desktop/name/image_example.jpg"   ## put the source file path here
