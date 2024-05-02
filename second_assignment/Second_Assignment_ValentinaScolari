@@ -23,7 +23,6 @@ def horizontal_mirroring(image):
 def vertical_mirroring(image):
     return image.transpose(Image.FLIP_TOP_BOTTOM)
 
-
 ### b)
 def convert_grayscale(image):
     return image.convert("L")
@@ -45,8 +44,6 @@ def quantization(image_grayscale, n):
             quantized_image.putpixel((x, y), quantized_pixel)
 
     return quantized_image
-
-
 
 #### T2
 ## 1)
@@ -87,7 +84,6 @@ def adjust_brightness_canal(canal, factor):
 def adjust_contrast(image, factor):
     if image.mode == 'RGB':
         r, g, b = image.split()
-
         r = adjust_contrast_canal(r, factor)
         g = adjust_contrast_canal(g, factor)
         b = adjust_contrast_canal(b, factor)
@@ -95,7 +91,6 @@ def adjust_contrast(image, factor):
         image_adjusted = Image.merge('RGB', (r, g, b))
     else:
         image_adjusted = adjust_contrast_canal(image, factor)
-
     return image_adjusted
 
 def adjust_contrast_canal(canal, factor):
@@ -109,7 +104,6 @@ def adjust_contrast_canal(canal, factor):
 def calculate_negative(image):
     if image.mode == 'RGB':
         r, g, b = image.split()
-
         r = calculate_negative_canal(r)
         g = calculate_negative_canal(g)
         b = calculate_negative_canal(b)
@@ -147,7 +141,6 @@ def equalize_histogram_canal(canal):
 
     canal_equalized_array = np.interp(np.array(canal), range(256), hist_cumulativo_normalizado)
     canal_equalized = Image.fromarray(canal_equalized_array.astype(np.uint8))
-
     return canal_equalized
 
 ## 6)
@@ -180,9 +173,7 @@ def histogram_matching(image_reference, image_alvo):
 
     return image_alvo_equalized
 
-
-
-######### parte 2
+##### parte 2
 ## 7)
 def zoom_out(image, sx, sy):
     width, height = image.size
@@ -223,7 +214,6 @@ def calculate_medium_rectangle(image, start_x, end_x, start_y, end_y):
         int(np.mean([pixel[1] for pixel in pixels])),
         int(np.mean([pixel[2] for pixel in pixels])),
     )
-
     return average_pixel
 
 ## 8)
@@ -277,7 +267,6 @@ def zoom_in(image):
                 int((pixel1[2] + pixel2[2] + pixel3[2] + pixel4[2]) / 4),
             )
             zoomed_in.putpixel((x, y), interpolated_pixel)
-
     return zoomed_in
 
 ## 9)
@@ -301,20 +290,14 @@ def convolution_sem_scipy(image, kernel):
 
     return Image.fromarray(result.astype(np.uint8))
 
-
 #####################################################################################################
 if __name__ == "__main__":
     source_file = "C:/Users/your user/Desktop/name/example.jpg"
     destination_directory = "C:/Users/your user/Desktop/name"
     newName = "newName_example.jpeg"
-
     rename_image(source_file, destination_directory, newName)
-
-
     original_image = Image.open(source_file)
     renamed_image = Image.open(os.path.join(destination_directory, newName))
-
-   
     plt.figure(figsize=(10, 5))  
     plt.subplot(1, 2, 1)  
     plt.imshow(original_image)
@@ -347,24 +330,19 @@ if __name__ == "__main__":
     quantized_image.save(caminho_resultante)
     print(f"Quantized image saved in {caminho_resultante}")
 
-
 #################################################################################################
 ###### T2
 ### parte 1
 
 ## 1) 
     histogram = calculate_histogram(image_grayscale)
-
     display_histogram(histogram)
-
-
 
 ## 2)
     # Ajuste do brilho da imagem original
     factor_Brightness = 50
     Image_Adjusted_Brightness = adjust_brightness(original_image, factor_Brightness)
 
-    
     plt.figure(figsize=(10, 5))
 
     plt.subplot(1, 2, 1)
@@ -381,7 +359,6 @@ if __name__ == "__main__":
 # Ajuste do contrast da imagem original
     contrast_factor = 3.5  
     image_adjusted_contrast = adjust_contrast(original_image, contrast_factor)
-
     
     plt.figure(figsize=(10, 5))
 
@@ -433,8 +410,7 @@ if __name__ == "__main__":
         plt.ylabel("Frequency")
         plt.legend()
 
-    plt.show()
-
+        plt.show()
 
 ######### parte 2
 ## 7)
@@ -458,7 +434,6 @@ plt.show()
 image_zoomed_in = zoom_in(original_image)
 
 plt.figure(figsize=(10, 5))
-
 plt.subplot(1, 2, 1)
 plt.imshow(original_image)
 plt.title("Original Image")
