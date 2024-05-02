@@ -29,7 +29,7 @@ def convert_grayscale(image):
 ### c)
 def quantization(image_tons_de_cinza, n):
     if n >= 256:
-        return image_grayscale  
+        return image_grayscale
 
     tb = 256 / n
     quantized_image  = Image.new("L", image_tons_de_cinza.size)
@@ -41,7 +41,7 @@ def quantization(image_tons_de_cinza, n):
             pixel_quantizado = int((bin_idx + 0.5) * tb)
             quantized_image .putpixel((x, y), pixel_quantizado)
 
-    return quantized_image 
+    return quantized_image
 #####################################################################################################
 if __name__ == "__main__":
     source_file = "C:/Users/example/Desktop/name/image_example.jpg"   ## put the source file path here
@@ -52,12 +52,12 @@ if __name__ == "__main__":
     image_original = Image.open(source_file)
     renamed_image = Image.open(os.path.join(destination_directory, newName))
 
-    plt.figure(figsize=(10, 5))  
-    plt.subplot(1, 2, 1)  
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
     plt.imshow(image_original)
     plt.title("Original Image")
 
-    plt.subplot(1, 2, 2)  
+    plt.subplot(1, 2, 2)
     plt.imshow(renamed_image)
     plt.title("re-recorded image")
     plt.show()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     image_grayscale = convert_grayscale(image_original)
     image_grayscale .show()
 
-    number_shades = 6  
+    number_shades = 6
     quantized_image  = quantization(image_grayscale, number_shades)
     quantized_image .show()
 
@@ -80,4 +80,3 @@ if __name__ == "__main__":
     resulting_path = os.path.join(destination_directory, file_name_resultante)
     quantized_image .save(resulting_path)
     print(f"Quantized image saved in {resulting_path}")
-
