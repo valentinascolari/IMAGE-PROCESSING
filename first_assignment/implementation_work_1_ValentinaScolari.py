@@ -27,21 +27,21 @@ def convert_grayscale(image):
     return image.convert("L")
 
 ### c)
-def quantization(image_tons_de_cinza, n):
+def quantization(image_grayscale, n):
     if n >= 256:
         return image_grayscale
 
     tb = 256 / n
-    quantized_image  = Image.new("L", image_tons_de_cinza.size)
+    quantized_image = Image.new("L", image_grayscale.size)
 
-    for x in range(image_tons_de_cinza.width):
-        for y in range(image_tons_de_cinza.height):
-            pixel_valor = image_tons_de_cinza.getpixel((x, y))
+    for x in range(image_grayscale.width):
+        for y in range(image_grayscale.height):
+            pixel_valor = image_grayscale.getpixel((x, y))
             bin_idx = int(pixel_valor / tb)
             pixel_quantizado = int((bin_idx + 0.5) * tb)
             quantized_image .putpixel((x, y), pixel_quantizado)
-
     return quantized_image
+    
 #####################################################################################################
 if __name__ == "__main__":
     source_file = "C:/Users/example/Desktop/name/image_example.jpg"   ## put the source file path here
