@@ -1,4 +1,5 @@
 The present work uses the OpenCV library and involves:
+
 - Real-time video processing;
 - Gaussian filtering;
 - Edge detection;
