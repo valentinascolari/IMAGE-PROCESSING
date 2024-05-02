@@ -11,7 +11,6 @@ This code involves:
 - Image brightness factor;
 - Image rotation;
 - Filtering in the spatial domain.
-
   
 The filters used were:
 
